@@ -1,0 +1,213 @@
+{
+	"info": {
+		"_postman_id": "dceeb1f3-b7c5-4973-9ee6-9abb188f7d2e",
+		"name": "Raevnpay- Fmac",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28781782"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Signup",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"yourpassword\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/signup",
+							"host": ["{{base_url}}"],
+							"path": ["signup"]
+						},
+						"description": "Register a new user account\n\nResponse:\n- 201: User created successfully\n- 400: Email already registered\n- 500: Internal server error"
+					}
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"yourpassword\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": ["{{base_url}}"],
+							"path": ["login"]
+						},
+						"description": "Login with user credentials\n\nResponse:\n- 200: Login successful (returns JWT token)\n- 401: Invalid credentials\n- 500: Internal server error"
+					}
+				}
+			]
+		},
+		{
+			"name": "Transactions",
+			"item": [
+				{
+					"name": "Create Bank Account",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+2348012345678\",\n    \"email\": \"user@example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/accounts",
+							"host": ["{{base_url}}"],
+							"path": ["accounts"]
+						},
+						"description": "Generate a new bank account\n\nRequires Authentication\n\nResponse:\n- 201: Account created successfully\n- 401: Unauthorized\n- 500: Internal server error"
+					}
+				},
+				{
+					"name": "Get Account Balance",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/accounts/:accountId/balance",
+							"host": ["{{base_url}}"],
+							"path": ["accounts", ":accountId", "balance"],
+							"variable": [
+								{
+									"key": "accountId",
+									"value": ""
+								}
+							]
+						},
+						"description": "Get balance for a specific account\n\nRequires Authentication\n\nResponse:\n- 200: Returns account balance\n- 401: Unauthorized\n- 404: Account not found\n- 500: Internal server error"
+					}
+				},
+				{
+					"name": "Transfer Funds",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fromAccountId\": \"account_id_1\",\n    \"toAccountId\": \"account_id_2\",\n    \"amount\": 1000,\n    \"description\": \"Transfer payment\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/accounts/transfer",
+							"host": ["{{base_url}}"],
+							"path": ["accounts", "transfer"]
+						},
+						"description": "Transfer funds between accounts\n\nRequires Authentication\n\nResponse:\n- 200: Transfer successful\n- 400: Invalid transfer (insufficient funds)\n- 401: Unauthorized\n- 500: Internal server error"
+					}
+				},
+				{
+					"name": "Get Account Transactions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{jwt_token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/accounts/:accountId/transactions",
+							"host": ["{{base_url}}"],
+							"path": ["accounts", ":accountId", "transactions"],
+							"variable": [
+								{
+									"key": "accountId",
+									"value": ""
+								}
+							]
+						},
+						"description": "Get transaction history for an account\n\nRequires Authentication\n\nResponse:\n- 200: Returns list of transactions\n- 401: Unauthorized\n- 404: Account not found\n- 500: Internal server error"
+					}
+				}
+			]
+		},
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": ["{{base_url}}"],
+					"path": ["health"]
+				},
+				"description": "Check if the API is running\n\nResponse:\n- 200: API is healthy"
+			}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000"
+		},
+		{
+			"key": "jwt_token",
+			"value": "your_jwt_token_here"
+		}
+	]
+}
