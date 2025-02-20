@@ -50,7 +50,7 @@ export class RavenPayProvider {
         }
     }
 
-    async generateTrasferVirtualAccount() {
+    async generateTransferVirtualAccount() {
         // 'https://integrations.getravenbank.com/v1/web/generate_virtual_account' 
 
     }
@@ -72,17 +72,20 @@ export class RavenPayProvider {
 
     async transferFunds(params: {
         fromAccount: string;
-        toAccount: string;
+        bank: string;
+        bankCode: string;
+        accountNumber: string;
         amount: number;
         narration?: string;
     }) {
         try {
             const data = qs.stringify({
-                source_account_number: params.fromAccount,
-                destination_account_number: params.toAccount,
+                bank: params.bank,
+                bank_code: params.bankCode,
                 amount: params.amount.toString(),
-                narration: params.narration || 'Fund Transfer',
-                client_transfer_reference: `TRF-${Date.now()}-${Math.random().toString(36).substring(7)}`
+                account_number: params.accountNumber,   
+                narration: params.narration || 'Bulk Fund Transfer',
+                reference: `TRF-${Date.now()}-${Math.random().toString(36).substring(7)}`
             });
 
             const response = await axios({
