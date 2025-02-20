@@ -1,19 +1,17 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import type { Knex } from "knex";
+import path from 'path';
 
-export default {
-  development: {
-    client: 'mysql',
-    connection: {
-      host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      port: Number(process.env.DB_PORT) || 3306
-    },
-    migrations: {
-      directory: './src/db/migrations',
-      tableName: 'knex_migrations'
-    }
+const config: Knex.Config = {
+  client: 'sqlite3',
+  connection: {
+    filename: path.join(__dirname, 'database.sqlite')
+  },
+  useNullAsDefault: true,
+  migrations: {
+    directory: './src/db/migrations',
+    tableName: 'knex_migrations',
+    extension: 'ts'
   }
 };
+
+module.exports = config;

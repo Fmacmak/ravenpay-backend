@@ -1,4 +1,4 @@
-import { Knex } from 'knex';
+import type { Knex } from "knex";
 
 export async function up(knex: Knex): Promise<void> {
   // Users table
@@ -32,6 +32,7 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamps(true, true);
   });
 
+  // Beneficiaries table
   await knex.schema.createTable('beneficiaries', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('UUID()'));
     table.uuid('user_id').references('id').inTable('users').onDelete('CASCADE');
@@ -44,8 +45,10 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
+  // Drop tables in reverse order to handle foreign key constraints
   await knex.schema.dropTableIfExists('transactions');
+  await knex.schema.dropTableIfExists('beneficiaries');
   await knex.schema.dropTableIfExists('bank_accounts');
   await knex.schema.dropTableIfExists('users');
-  await knex.schema.dropTableIfExists('beneficiaries');
 }
+

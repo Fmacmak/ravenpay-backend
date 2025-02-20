@@ -98,7 +98,7 @@ export class RavenPayProvider {
             return response.data;
         } catch (error) {
             console.error('RavenPay transfer error:', error);
-            throw error;
+            throw new Error("failed becasue bank was not available");
         }
     }
 

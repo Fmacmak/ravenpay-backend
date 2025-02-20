@@ -1,12 +1,14 @@
-//endpoint to generate a bank account
-//endpoint to get the balance of the bank account
-//endpoint transfer funds
-//endpoint to get the transactions of the bank account
-
 import { Application, Request, Response } from "express";
 import db from "../db";
 import { auth } from "../middleware/auth";
 import { RavenPayProvider } from '../provider/ravenpay';
+
+interface receipts {
+    action: string,
+    status: 'success' | 'fail'
+    reason: string,
+    details?: string
+}
 
 export class TransactionService {
     private static ravenPay = new RavenPayProvider();
@@ -16,6 +18,9 @@ export class TransactionService {
         app.get('/accounts/:accountId/balance', auth, TransactionService.getBalance);
         app.post('/accounts/transfer', auth, TransactionService.transferFunds);
         app.get('/accounts/:accountId/transactions', auth, TransactionService.getTransactions);
+        app.post('/accounts/bulk-transfer', TransactionService.bulkTransfer ); //deducts from main balance, all the total in n seperate transfers. 
+        app.get('/beneficiaries', auth, TransactionService.getBeneficiaries);
+        app.post('/beneficiaries', auth, TransactionService.saveBeneficiary);
     }
 
     public static async createBankAccount(req: Request, res: Response) {
@@ -85,7 +90,7 @@ export class TransactionService {
     public static async transferFunds(req: Request, res: Response) {
         try {
             const { fromAccountId, toAccountId, amount, description } = req.body;
-            const userId = req.user.id;
+            const userId = req?.user?.id;
 
             // Start transaction
             await db.transaction(async (trx) => {
@@ -175,6 +180,97 @@ export class TransactionService {
             });
         } catch (error) {
             console.error('Get transactions error:', error);
+            res.status(500).json({ status: 'error', message: 'Internal server error' });
+        }
+    }
+
+    public static async bulkTransfer(req: Request, res: Response){
+
+        try {
+            console.log(req.body); //array of the bank accounts to transfer to, account number, bank code, amount
+
+            const bulkRecipients = req.body;
+            const receipts: receipts[] = [];
+
+            for (let individual of bulkRecipients){ //track if any fail and reason why they fail 
+
+                try {
+
+                    await TransactionService.ravenPay.transferFunds(individual);
+                    receipts.push({
+                        action: "transfer",
+                        status: "success",
+                        details: JSON.stringify(individual)//`account number: ${individual.accountNumber}, amount: ${individual.amount}, bank: `        
+                    })
+
+
+                }catch(error){
+                    console.log("Failed individual bulk transfer", error);
+                    receipts.push({
+                        action: "transfer",
+                        status: "fail",
+                        reason: error,
+                        details: JSON.stringify(individual)//`account number: ${individual.accountNumber}, amount: ${individual.amount}, bank: `        
+                    })
+
+                }
+
+                res.status(200).json({
+                    status: 'ok',
+                    message: 'bulk transfers complete',
+                    receipts: receipts
+                });
+
+            }
+
+            
+
+        } catch (error) {
+            console.error('bulk transfer error:', error);
+            res.status(500).json({ status: 'error', message: 'Internal server error' });
+        }
+
+    }
+
+    public static async getBeneficiaries(req: Request, res: Response) {
+        try {
+            const userId = req.user.id;
+            const beneficiaries = await db('beneficiaries')
+                .where('user_id', userId)
+                .select();
+
+            res.json({ status: 'ok', beneficiaries });
+        } catch (error) {
+            console.error('Get beneficiaries error:', error);
+            res.status(500).json({ status: 'error', message: 'Internal server error' });
+        }
+    }
+
+    public static async saveBeneficiary(req: Request, res: Response) {
+        try {
+            const userId = req.user.id;
+            const { account_number, bank_code, bank_name, account_name } = req.body;
+
+            const [beneficiaryId] = await db('beneficiaries').insert({
+                user_id: userId,
+                account_number,
+                bank_code,
+                bank_name,
+                account_name
+            });
+
+            res.status(201).json({
+                status: 'ok',
+                beneficiary: {
+                    id: beneficiaryId,
+                    account_number,
+                    bank_code,
+                    bank_name,
+                    account_name
+                }
+            });
+        } catch (error) {
+            console.error('Save beneficiary error:', error);
             res.status(500).json({ status: 'error', message: 'Internal server error' });
         }
     }
