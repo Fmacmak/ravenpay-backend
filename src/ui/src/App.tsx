@@ -108,7 +108,7 @@ const BulkTransfer: React.FC = () => {
 
       // Handle success
       setRecipients([]);
-    } catch (error) {
+    } catch (error: any) {
       setError(error.message || 'Failed to process bulk transfer');
     } finally {
       setLoading(false);

@@ -1,5 +1,5 @@
 import type { Knex } from "knex";
-import path from 'path';
+import * as path from 'path';
 
 const config: Knex.Config = {
   client: 'sqlite3',
@@ -14,4 +14,4 @@ const config: Knex.Config = {
   }
 };
 
-module.exports = config;
+export default config;
